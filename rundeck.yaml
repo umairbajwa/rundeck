@@ -1,0 +1,63 @@
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rundeckpro
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 4440
+  selector:
+    app: rundeck
+  externalTrafficPolicy: Local
+  sessionAffinity: ClientIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rundeck
+  namespace: default
+  labels:
+    app: rundeck
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rundeck
+  template:
+    metadata:
+      labels:
+        app: rundeck
+    spec:
+      containers:
+      - name: rundeck
+        image: rundeckpro/rundeck:SNAPSHOT
+        volumeMounts:
+          - mountPath: /home/rundeck/etc/admin-role.aclpolicy
+            name: acl
+            subPath: admin-role.aclpolicy
+          - mountPath: /home/rundeck/.kube/config
+            name: kubeconfig
+            subPath: config
+        ports:
+        - containerPort: 4440
+        livenessProbe:
+          # an http probe
+          httpGet:
+            path: /
+            port: 4440
+            scheme: HTTP
+          initialDelaySeconds: 500
+          periodSeconds: 120
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4440
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5

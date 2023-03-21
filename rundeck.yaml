@@ -34,27 +34,5 @@ spec:
       containers:
       - name: rundeck
         image: rundeckpro/rundeck:SNAPSHOT
-        volumeMounts:
-          - mountPath: /home/rundeck/etc/admin-role.aclpolicy
-            name: acl
-            subPath: admin-role.aclpolicy
-          - mountPath: /home/rundeck/.kube/config
-            name: kubeconfig
-            subPath: config
         ports:
         - containerPort: 4440
-        livenessProbe:
-          # an http probe
-          httpGet:
-            path: /
-            port: 4440
-            scheme: HTTP
-          initialDelaySeconds: 500
-          periodSeconds: 120
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 4440
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
